@@ -1,0 +1,1131 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Quiz — Engenharia de Requisitos</title>
+<style>
+:root{
+  --bg:#0f1117;
+  --surface:#1a1d27;
+  --card:#22263a;
+  --border:#2e3248;
+  --text:#e8e9f0;
+  --muted:#7b7f9e;
+  --accent:#6c63ff;
+  --accent2:#a78bfa;
+  --green:#22c55e;
+  --green-bg:rgba(34,197,94,.12);
+  --red:#ef4444;
+  --red-bg:rgba(239,68,68,.12);
+  --yellow:#f59e0b;
+  --yellow-bg:rgba(245,158,11,.1);
+  --radius:14px;
+  --radius-sm:8px;
+}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+html,body{height:100%;background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;font-size:16px;line-height:1.5;overflow-x:hidden}
+
+/* TELA INICIAL */
+#screen-start{
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  min-height:100vh;padding:32px 24px;text-align:center;
+}
+.logo-ring{
+  width:88px;height:88px;border-radius:50%;
+  background:linear-gradient(135deg,var(--accent),var(--accent2));
+  display:flex;align-items:center;justify-content:center;
+  font-size:36px;margin-bottom:28px;
+  box-shadow:0 0 40px rgba(108,99,255,.4);
+}
+#screen-start h1{font-size:26px;font-weight:700;margin-bottom:10px;letter-spacing:-.3px}
+#screen-start p{color:var(--muted);font-size:15px;max-width:320px;margin-bottom:32px}
+.stat-row{display:flex;gap:16px;margin-bottom:36px}
+.stat-box{
+  background:var(--card);border:1px solid var(--border);border-radius:var(--radius-sm);
+  padding:14px 20px;text-align:center;flex:1;
+}
+.stat-box .n{font-size:24px;font-weight:700;color:var(--accent2)}
+.stat-box .l{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.08em;margin-top:2px}
+.btn-start{
+  width:100%;max-width:320px;background:linear-gradient(135deg,var(--accent),var(--accent2));
+  color:#fff;border:none;border-radius:var(--radius);padding:18px;
+  font-size:17px;font-weight:600;cursor:pointer;letter-spacing:.02em;
+  box-shadow:0 8px 32px rgba(108,99,255,.35);transition:transform .1s,box-shadow .1s;
+}
+.btn-start:active{transform:scale(.97);box-shadow:0 4px 16px rgba(108,99,255,.25)}
+
+/* QUIZ */
+#screen-quiz{display:none;min-height:100vh;flex-direction:column}
+.quiz-header{
+  position:sticky;top:0;z-index:10;
+  background:var(--bg);border-bottom:1px solid var(--border);
+  padding:14px 20px;
+}
+.quiz-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px}
+.quiz-round{font-size:12px;color:var(--muted);font-weight:500;letter-spacing:.06em;text-transform:uppercase}
+.quiz-score-live{font-size:13px;font-weight:600;color:var(--accent2)}
+.progress-track{height:4px;background:var(--border);border-radius:2px;overflow:hidden}
+.progress-fill{height:100%;background:linear-gradient(90deg,var(--accent),var(--accent2));border-radius:2px;transition:width .4s ease}
+.q-counter{font-size:12px;color:var(--muted);margin-top:8px;text-align:right}
+
+.quiz-body{flex:1;padding:24px 20px 32px;max-width:560px;margin:0 auto;width:100%}
+
+.category-tag{
+  display:inline-block;font-size:11px;font-weight:600;letter-spacing:.09em;
+  text-transform:uppercase;padding:4px 10px;border-radius:20px;margin-bottom:16px;
+}
+.cat-a1{background:rgba(108,99,255,.15);color:var(--accent2)}
+.cat-a2{background:rgba(34,197,94,.12);color:#4ade80}
+.cat-a3{background:rgba(245,158,11,.12);color:#fbbf24}
+.cat-a4{background:rgba(239,68,68,.12);color:#f87171}
+
+.question-text{
+  font-size:18px;font-weight:600;line-height:1.45;margin-bottom:28px;
+  letter-spacing:-.2px;
+}
+
+.options{display:flex;flex-direction:column;gap:12px;margin-bottom:24px}
+.opt-btn{
+  display:flex;align-items:flex-start;gap:14px;
+  background:var(--card);border:1.5px solid var(--border);
+  border-radius:var(--radius);padding:16px 18px;
+  cursor:pointer;text-align:left;color:var(--text);
+  font-size:15px;line-height:1.45;font-family:inherit;
+  transition:border-color .15s,background .15s,transform .08s;
+  width:100%;
+}
+.opt-btn:active:not(:disabled){transform:scale(.98)}
+.opt-btn:not(:disabled):hover{border-color:var(--accent);background:rgba(108,99,255,.06)}
+.opt-letter{
+  width:28px;height:28px;border-radius:50%;border:1.5px solid var(--border);
+  display:flex;align-items:center;justify-content:center;
+  font-size:13px;font-weight:600;flex-shrink:0;margin-top:1px;
+  transition:all .15s;
+}
+.opt-btn.correct{border-color:var(--green);background:var(--green-bg)}
+.opt-btn.correct .opt-letter{border-color:var(--green);background:var(--green);color:#fff}
+.opt-btn.wrong{border-color:var(--red);background:var(--red-bg)}
+.opt-btn.wrong .opt-letter{border-color:var(--red);background:var(--red);color:#fff}
+.opt-btn.show-correct{border-color:var(--green);background:var(--green-bg);opacity:.7}
+.opt-btn.show-correct .opt-letter{border-color:var(--green);background:var(--green);color:#fff}
+.opt-btn:disabled{cursor:not-allowed}
+
+.feedback-box{
+  border-radius:var(--radius-sm);padding:14px 16px;margin-bottom:24px;
+  font-size:14px;line-height:1.55;display:none;
+}
+.feedback-box.show{display:block}
+.feedback-box.ok{background:var(--green-bg);border:1px solid rgba(34,197,94,.25);color:#86efac}
+.feedback-box.nok{background:var(--red-bg);border:1px solid rgba(239,68,68,.25);color:#fca5a5}
+.feedback-title{font-weight:700;margin-bottom:4px;font-size:15px}
+
+.btn-next{
+  width:100%;background:var(--accent);color:#fff;border:none;border-radius:var(--radius);
+  padding:17px;font-size:16px;font-weight:600;cursor:pointer;font-family:inherit;
+  transition:transform .1s,opacity .1s;display:none;
+}
+.btn-next.show{display:block}
+.btn-next:active{transform:scale(.97);opacity:.9}
+
+/* RESULTADO */
+#screen-result{display:none;min-height:100vh;flex-direction:column;align-items:center;justify-content:center;padding:32px 24px;text-align:center}
+.result-ring{
+  width:120px;height:120px;border-radius:50%;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  margin-bottom:28px;position:relative;
+}
+.result-ring svg{position:absolute;top:0;left:0}
+.result-score{font-size:38px;font-weight:800;line-height:1}
+.result-total{font-size:14px;color:var(--muted);margin-top:2px}
+.result-msg{font-size:22px;font-weight:700;margin-bottom:8px;letter-spacing:-.2px}
+.result-sub{color:var(--muted);font-size:15px;margin-bottom:32px;max-width:300px}
+.result-breakdown{
+  display:flex;gap:12px;margin-bottom:36px;width:100%;max-width:320px;
+}
+.rb-item{
+  flex:1;background:var(--card);border:1px solid var(--border);
+  border-radius:var(--radius-sm);padding:12px 8px;text-align:center;
+}
+.rb-item .rn{font-size:22px;font-weight:700}
+.rb-item .rl{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.07em;margin-top:2px}
+.rb-correct .rn{color:var(--green)}
+.rb-wrong .rn{color:var(--red)}
+.rb-pct .rn{color:var(--accent2)}
+
+.btn-next-round{
+  width:100%;max-width:320px;background:linear-gradient(135deg,var(--accent),var(--accent2));
+  color:#fff;border:none;border-radius:var(--radius);padding:18px;
+  font-size:17px;font-weight:600;cursor:pointer;font-family:inherit;
+  box-shadow:0 8px 32px rgba(108,99,255,.35);transition:transform .1s;
+  margin-bottom:12px;
+}
+.btn-next-round:active{transform:scale(.97)}
+.btn-home{
+  width:100%;max-width:320px;background:transparent;color:var(--muted);
+  border:1px solid var(--border);border-radius:var(--radius);padding:16px;
+  font-size:15px;cursor:pointer;font-family:inherit;transition:color .15s;
+}
+.btn-home:hover{color:var(--text)}
+
+.review-section{width:100%;max-width:560px;margin-top:32px;text-align:left}
+.review-title{font-size:14px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.08em;margin-bottom:16px}
+.review-item{
+  background:var(--card);border:1px solid var(--border);border-radius:var(--radius-sm);
+  padding:14px 16px;margin-bottom:10px;
+}
+.review-item .ri-tag{font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.07em;margin-bottom:6px}
+.review-item .ri-tag.ok{color:var(--green)}
+.review-item .ri-tag.nok{color:var(--red)}
+.review-item .ri-q{font-size:14px;font-weight:500;margin-bottom:6px;line-height:1.4}
+.review-item .ri-ans{font-size:13px;color:var(--muted)}
+.review-item .ri-ans span{color:var(--green);font-weight:500}
+
+/* Global stats badge */
+.gs-row{display:flex;gap:10px;width:100%;max-width:320px;margin-bottom:28px}
+.gs-badge{
+  flex:1;background:var(--card);border:1px solid var(--border);
+  border-radius:var(--radius-sm);padding:10px 6px;text-align:center;
+}
+.gs-badge .gn{font-size:16px;font-weight:700;color:var(--accent2)}
+.gs-badge .gl{font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;margin-top:2px}
+</style>
+</head>
+<body>
+
+<!-- TELA INICIAL -->
+<div id="screen-start">
+  <div class="logo-ring">📋</div>
+  <h1>Quiz — Eng. de Requisitos</h1>
+  <p>10 questões por rodada, embaralhadas de um banco com <strong>60 perguntas</strong> cobrindo todas as 4 aulas.</p>
+  <div class="stat-row" id="global-stats-home" style="display:none">
+    <div class="stat-box"><div class="n" id="gs-rodadas">0</div><div class="l">Rodadas</div></div>
+    <div class="stat-box"><div class="n" id="gs-acertos">0%</div><div class="l">Acertos</div></div>
+    <div class="stat-box"><div class="n" id="gs-total">0</div><div class="l">Respondidas</div></div>
+  </div>
+  <button class="btn-start" onclick="startQuiz()">Começar Quiz ↗</button>
+</div>
+
+<!-- TELA QUIZ -->
+<div id="screen-quiz">
+  <div class="quiz-header">
+    <div class="quiz-top">
+      <span class="quiz-round" id="round-label">Rodada 1</span>
+      <span class="quiz-score-live" id="live-score">0 / 0</span>
+    </div>
+    <div class="progress-track"><div class="progress-fill" id="progress-fill" style="width:0%"></div></div>
+    <div class="q-counter" id="q-counter">Pergunta 1 de 10</div>
+  </div>
+  <div class="quiz-body">
+    <div class="category-tag" id="cat-tag"></div>
+    <div class="question-text" id="question-text"></div>
+    <div class="options" id="options-container"></div>
+    <div class="feedback-box" id="feedback-box">
+      <div class="feedback-title" id="feedback-title"></div>
+      <div id="feedback-exp"></div>
+    </div>
+    <button class="btn-next" id="btn-next" onclick="nextQuestion()">Próxima →</button>
+  </div>
+</div>
+
+<!-- TELA RESULTADO -->
+<div id="screen-result">
+  <div class="result-ring" id="result-ring">
+    <svg width="120" height="120"><circle cx="60" cy="60" r="52" fill="none" stroke="var(--border)" stroke-width="8"/><circle id="score-circle" cx="60" cy="60" r="52" fill="none" stroke="var(--accent)" stroke-width="8" stroke-linecap="round" stroke-dasharray="326.7" stroke-dashoffset="326.7" transform="rotate(-90 60 60)" style="transition:stroke-dashoffset 1s ease"/></svg>
+    <div class="result-score" id="result-score-num">0</div>
+    <div class="result-total">de 10</div>
+  </div>
+  <div class="result-msg" id="result-msg"></div>
+  <div class="result-sub" id="result-sub"></div>
+  <div class="result-breakdown">
+    <div class="rb-item rb-correct"><div class="rn" id="rb-correct">0</div><div class="rl">Acertos</div></div>
+    <div class="rb-item rb-wrong"><div class="rn" id="rb-wrong">0</div><div class="rl">Erros</div></div>
+    <div class="rb-item rb-pct"><div class="rn" id="rb-pct">0%</div><div class="rl">Nota</div></div>
+  </div>
+  <div class="gs-row" id="gs-row-result" style="display:none">
+    <div class="gs-badge"><div class="gn" id="gsr-rodadas">0</div><div class="gl">Rodadas</div></div>
+    <div class="gs-badge"><div class="gn" id="gsr-acertos">0%</div><div class="gl">Aproveit.</div></div>
+    <div class="gs-badge"><div class="gn" id="gsr-total">0</div><div class="gl">Respondidas</div></div>
+  </div>
+  <button class="btn-next-round" onclick="startQuiz()">Nova Rodada ↗</button>
+  <button class="btn-home" onclick="goHome()">← Início</button>
+  <div class="review-section">
+    <div class="review-title">Revisão desta rodada</div>
+    <div id="review-list"></div>
+  </div>
+</div>
+
+<script>
+// ===================== BANCO DE QUESTÕES =====================
+const QUESTIONS = [
+
+// ===== AULA 1 — INTRODUÇÃO =====
+{cat:"Aula 1 — Introdução",catClass:"cat-a1",
+q:"Em que ano e em qual evento a Engenharia de Requisitos se estabeleceu como disciplina independente?",
+opts:["1985, durante o ACM","1993, durante o IEEE","1999, durante o PMI","2001, com o Manifesto Ágil"],c:1,
+exp:"Em 1993, durante o IEEE, a ER se tornou uma subárea independente da Engenharia de Software."},
+
+{cat:"Aula 1 — Introdução",catClass:"cat-a1",
+q:"Segundo o PMI (2018), qual percentual dos projetos que fracassam tem como principal causa o levantamento impreciso de requisitos?",
+opts:["15%","25%","35%","45%"],c:2,
+exp:"35% dos projetos que fracassam têm como principal causa o levantamento impreciso de requisitos (PMI, 2018)."},
+
+{cat:"Aula 1 — Introdução",catClass:"cat-a1",
+q:"Qual a definição correta de Engenharia de Requisitos segundo Vazquez e Simões (2016)?",
+opts:[
+"Conjunto de técnicas para desenvolver software dentro do prazo e orçamento.",
+"Uso de técnicas para obter, documentar e gerenciar requisitos que atendam aos objetivos de negócio e sejam de qualidade.",
+"Processo de testes que garante a qualidade do software desenvolvido.",
+"Metodologia ágil para entrega contínua de software funcional."
+],c:1,
+exp:"A definição exata: uso de técnicas para obter, documentar e gerenciar requisitos que atendam aos objetivos de negócio e sejam de qualidade."},
+
+{cat:"Aula 1 — Introdução",catClass:"cat-a1",
+q:"Em quais modelos de maturidade de software a Engenharia de Requisitos está presente nos primeiros níveis?",
+opts:["SCRUM e Kanban","PMBOK e BABOK","CMMI e MPS.BR","RUP e XP"],c:2,
+exp:"A ER está inclusa nos dois primeiros níveis dos modelos CMMI e MPS.BR, demonstrando sua importância central para software de qualidade."},
+
+{cat:"Aula 1 — Introdução",catClass:"cat-a1",
+q:"Quais são as 3 ações fundamentais que a ER engloba?",
+opts:[
+"Planejar, desenvolver e testar requisitos",
+"Definir, documentar e manter requisitos",
+"Elicitar, analisar e validar requisitos",
+"Entrevistar, prototipiar e homologar requisitos"
+],c:1,
+exp:"A ER engloba: definir, documentar e manter os requisitos de um projeto de software."},
+
+{cat:"Aula 1 — Introdução",catClass:"cat-a1",
+q:"Qual das opções abaixo NÃO é uma consequência da falha na especificação de requisitos?",
+opts:[
+"Estimativas de custo incertas",
+"Entregas que não satisfazem o stakeholder",
+"Aumento da produtividade da equipe",
+"Falta de funções importantes no sistema"
+],c:2,
+exp:"Falhas em requisitos causam custo incerto, prazo incorreto, entregas ruins e funções faltando. Não aumentam produtividade — pelo contrário."},
+
+{cat:"Aula 1 — Introdução",catClass:"cat-a1",
+q:"Qual é a responsabilidade central do analista de requisitos?",
+opts:[
+"Escrever o código das funcionalidades levantadas",
+"Identificar necessidades dos stakeholders e especificá-las para que devs possam implementar",
+"Realizar os testes do sistema após o desenvolvimento",
+"Gerenciar o orçamento e cronograma do projeto"
+],c:1,
+exp:"O analista tem contato direto com stakeholders, entende o domínio e especifica requisitos de forma que arquitetos, desenvolvedores e testers possam implementar."},
+
+{cat:"Aula 1 — Introdução",catClass:"cat-a1",
+q:"Quais são as atividades da Engenharia de Requisitos, na ordem correta?",
+opts:[
+"Codificar → Testar → Documentar → Elicitar",
+"Elicitar → Analisar → Especificar → Validar → Gerenciar",
+"Planejar → Executar → Controlar → Fechar",
+"Identificar → Priorizar → Implementar → Homologar"
+],c:1,
+exp:"As atividades são: Elicitar necessidades → Entender e analisar → Especificar a solução → Validar → Gerenciar os requisitos."},
+
+{cat:"Aula 1 — Introdução",catClass:"cat-a1",
+q:"Qual habilidade profissional é listada como característica do analista de requisitos segundo Pohl e Rupp (2015)?",
+opts:["Proficiência em linguagens de programação","Conhecimento avançado de banco de dados","Habilidades de resolução de conflitos","Certificação em gerência de projetos"],c:2,
+exp:"Pohl e Rupp (2015) listam: pensamento analítico, empatia, comunicação, resolução de conflitos, negociação, persuasão e lidar com prazos."},
+
+{cat:"Aula 1 — Introdução",catClass:"cat-a1",
+q:"A ER produz insumos para diversas outras áreas. Para qual área ela contribui com a criação de casos de teste?",
+opts:["Gerência de projetos","Implantação","Testes","Desenvolvimento"],c:2,
+exp:"A ER contribui para Testes com a criação dos casos de teste. Para Desenvolvimento dá agilidade, para Gerência dá planejamento de escopo/prazos."},
+
+{cat:"Aula 1 — Introdução",catClass:"cat-a1",
+q:"Por que o processo de ER deve ser adaptado a cada projeto?",
+opts:[
+"Porque cada cliente tem um orçamento diferente",
+"Porque diferentes cenários (pessoas, negócio, restrições org.) impactam na escolha das técnicas",
+"Porque a lei exige diferentes documentações por setor",
+"Porque cada linguagem de programação exige um processo diferente"
+],c:1,
+exp:"Diferentes projetos têm pessoas, fatores de negócio e restrições organizacionais distintas, o que impacta diretamente na escolha das técnicas de ER."},
+
+// ===== AULA 2 — TIPOS DE REQUISITOS =====
+{cat:"Aula 2 — Tipos de Requisitos",catClass:"cat-a2",
+q:"O que define um Requisito Funcional?",
+opts:[
+"Descreve como o sistema deve performar em termos de velocidade e disponibilidade.",
+"Descreve O QUE o sistema deve fazer — suas funções, features e capacidades.",
+"Define restrições de hardware e infraestrutura do projeto.",
+"Especifica padrões legais e de segurança a serem seguidos."
+],c:1,
+exp:"RF = O QUE o sistema faz. Descreve funções, features e capacidades. São testáveis diretamente."},
+
+{cat:"Aula 2 — Tipos de Requisitos",catClass:"cat-a2",
+q:"Qual é a principal diferença entre Requisito de Usuário e Requisito de Sistema?",
+opts:[
+"Requisito de usuário é técnico; de sistema é escrito em linguagem natural.",
+"Requisito de usuário é mais alto nível e genérico; de sistema é detalhado e técnico.",
+"São sinônimos — ambos descrevem o que o usuário quer.",
+"Requisito de sistema é criado antes do de usuário."
+],c:1,
+exp:"Req. de Usuário = mais alto nível, linguagem natural, sem detalhes técnicos. Req. de Sistema = especificação técnica detalhada, derivada dos de usuário."},
+
+{cat:"Aula 2 — Tipos de Requisitos",catClass:"cat-a2",
+q:"'O sistema deve responder em menos de 2 segundos.' Esse é um exemplo de:",
+opts:[
+"Requisito Funcional de sistema",
+"Regra de Negócio",
+"Requisito Não Funcional (performance)",
+"Critério de aceite"
+],c:2,
+exp:"Tempo de resposta é um atributo de performance — portanto Requisito Não Funcional. RNF descreve DE QUE MANEIRA o sistema funciona."},
+
+{cat:"Aula 2 — Tipos de Requisitos",catClass:"cat-a2",
+q:"De acordo com Sommerville (2011), os RNF se dividem em 3 categorias de origem. Quais são?",
+opts:[
+"Funcionais, Operacionais e Técnicos",
+"Produto, Organizacionais e Externos",
+"Segurança, Performance e Usabilidade",
+"Negócio, Usuário e Sistema"
+],c:1,
+exp:"Sommerville divide RNF em: Produto (comportamento do software), Organizacionais (políticas da empresa) e Externos (leis, regulamentos, ética)."},
+
+{cat:"Aula 2 — Tipos de Requisitos",catClass:"cat-a2",
+q:"'O sistema deverá ser desenvolvido em Java.' Esse RNF se enquadra em qual categoria?",
+opts:[
+"RNF de Produto — confiabilidade",
+"RNF Externo — legal",
+"RNF Organizacional — implementação",
+"RNF de Produto — usabilidade"
+],c:2,
+exp:"Linguagem de desenvolvimento é uma política/decisão interna da organização — portanto RNF Organizacional, especificamente de implementação."},
+
+{cat:"Aula 2 — Tipos de Requisitos",catClass:"cat-a2",
+q:"O que são Requisitos de Domínio (Regras de Negócio)?",
+opts:[
+"Requisitos técnicos de infraestrutura de servidores",
+"Regras derivadas do domínio/negócio, com conhecimentos específicos da área atendida",
+"Requisitos que definem o que o sistema NÃO deve fazer",
+"Requisitos temporários válidos apenas durante a transição"
+],c:1,
+exp:"Regras de Negócio = requisitos do domínio da aplicação que refletem políticas e conhecimentos específicos do negócio. Ex: fórmula de cálculo de média."},
+
+{cat:"Aula 2 — Tipos de Requisitos",catClass:"cat-a2",
+q:"'Somente clientes com CPF cadastrado poderão comprar.' Que tipo de requisito é esse?",
+opts:[
+"Requisito Não Funcional Externo (legal)",
+"Requisito Funcional de usuário",
+"Regra de Negócio (Requisito de Domínio)",
+"Premissa do projeto"
+],c:2,
+exp:"Regras de negócio refletem políticas específicas do domínio. Essa é uma política comercial da empresa — portanto Regra de Negócio."},
+
+{cat:"Aula 2 — Tipos de Requisitos",catClass:"cat-a2",
+q:"O que são Critérios de Aceite?",
+opts:[
+"Métricas de performance do servidor",
+"Condições mínimas para que uma entrega seja aceita pelo cliente",
+"Documentação de arquitetura do sistema",
+"Lista de funcionalidades aprovadas pelo gestor"
+],c:1,
+exp:"Critérios de aceite = condições mínimas para aceitar uma entrega (PMI, 2018). A equação: Critério de aceite = Requisito mínimo."},
+
+{cat:"Aula 2 — Tipos de Requisitos",catClass:"cat-a2",
+q:"Qual é a diferença entre Restrição e Premissa?",
+opts:[
+"Restrição é positiva; Premissa é negativa.",
+"Restrição é uma limitação imposta ao projeto; Premissa é um fator assumido como verdade com risco associado.",
+"São sinônimos — ambas limitam o projeto.",
+"Restrição vale só no início; Premissa vale em todo o projeto."
+],c:1,
+exp:"Restrição = limitação ao projeto (prazo, orçamento, tecnologia). Premissa = fator considerado verdadeiro, mas que pode não se confirmar — sempre tem risco associado."},
+
+{cat:"Aula 2 — Tipos de Requisitos",catClass:"cat-a2",
+q:"Qual é a hierarquia correta dos requisitos, do mais abstrato ao mais detalhado?",
+opts:[
+"Sistema → Usuário → Negócio",
+"Usuário → Negócio → Sistema",
+"Negócio → Usuário → Sistema",
+"Negócio → Sistema → Usuário"
+],c:2,
+exp:"A pirâmide vai do mais abstrato (estratégico) ao mais técnico: Negócio (objetivos da org.) → Usuário (o que quer fazer) → Sistema (especificação técnica)."},
+
+{cat:"Aula 2 — Tipos de Requisitos",catClass:"cat-a2",
+q:"O que são Requisitos Inversos?",
+opts:[
+"Requisitos que se contradizem mutuamente",
+"Declarações negativas que indicam o que o sistema NÃO deve fazer",
+"Requisitos que surgem após o início do desenvolvimento",
+"Requisitos identificados pelo analista sem participação do cliente"
+],c:1,
+exp:"Requisitos Inversos = declarações negativas sobre o que o sistema não deve fazer. Evitam expectativas, mas sempre que possível prefira declarações positivas."},
+
+{cat:"Aula 2 — Tipos de Requisitos",catClass:"cat-a2",
+q:"O que são Requisitos de Transição?",
+opts:[
+"Requisitos que transitam entre tipos funcionais e não funcionais",
+"Requisitos temporários para migrar de um estado para outro, desnecessários após a transição",
+"Requisitos aprovados em uma fase e revisados na próxima",
+"Requisitos que mudam de prioridade ao longo do projeto"
+],c:1,
+exp:"Req. de Transição = usados apenas durante a migração/transição para um novo estado. Após a conclusão, deixam de ser necessários."},
+
+{cat:"Aula 2 — Tipos de Requisitos",catClass:"cat-a2",
+q:"Qual atributo de qualidade garante que um requisito pode ser verificado/testado?",
+opts:["Rastreável","Consistente","Verificável","Modificável"],c:2,
+exp:"Verificável = o requisito deve ser descrito de forma que seja possível verificar sua implementação. Sem isso, como saber se foi implementado corretamente?"},
+
+{cat:"Aula 2 — Tipos de Requisitos",catClass:"cat-a2",
+q:"'O sistema deve ficar disponível 99% do tempo.' Qual subcategoria de RNF de Produto é essa?",
+opts:["Usabilidade","Eficiência","Confiabilidade","Segurança"],c:2,
+exp:"Disponibilidade 99% é um requisito de Confiabilidade — subcategoria de RNF de Produto (Sommerville, 2011)."},
+
+{cat:"Aula 2 — Tipos de Requisitos",catClass:"cat-a2",
+q:"Quais são os leitores típicos dos Requisitos de Sistema (mais detalhados)?",
+opts:[
+"Apenas os clientes e patrocinadores do projeto",
+"Alta gestão e gerentes de produto",
+"Usuários, arquiteto de sistemas, desenvolvedores e testers",
+"Somente o analista de requisitos"
+],c:2,
+exp:"Req. de Sistema são lidos por quem precisa de detalhes técnicos: usuários (alguns), arquiteto, desenvolvedores e testers. Os de usuário são para gerentes e clientes."},
+
+{cat:"Aula 2 — Tipos de Requisitos",catClass:"cat-a2",
+q:"O que são Requisitos Evidentes?",
+opts:[
+"Requisitos identificados sem interação com o stakeholder",
+"Funcionalidades executadas com conhecimento do cliente, como consultas e cadastros",
+"Funções ocultas que o sistema executa sem o usuário perceber",
+"Requisitos óbvios que não precisam ser documentados"
+],c:1,
+exp:"Req. Evidentes = funcionalidades que o cliente sabe que existem, como consultas, cadastros e processos realizados via interface. Opostos aos Req. Ocultos."},
+
+{cat:"Aula 2 — Tipos de Requisitos",catClass:"cat-a2",
+q:"'Ao indicar um amigo que faz uma compra, o cliente ganha desconto em uma parcela.' Esse é um exemplo de:",
+opts:[
+"Requisito Funcional evidente",
+"Regra de Negócio explícita",
+"Requisito oculto (função sem conhecimento explícito do usuário)",
+"Critério de aceite"
+],c:2,
+exp:"Req. Ocultos = funções executadas sem o conhecimento explícito do usuário. O usuário não vê acontecer, mas o sistema executa internamente."},
+
+{cat:"Aula 2 — Tipos de Requisitos",catClass:"cat-a2",
+q:"Qual atributo de qualidade garante que a origem de um requisito está claramente identificada?",
+opts:["Verificável","Rastreável","Necessário","Completo"],c:1,
+exp:"Rastreável = a origem (fonte) de um requisito deve estar claramente identificada, permitindo saber de onde ele veio e por que existe."},
+
+{cat:"Aula 2 — Tipos de Requisitos",catClass:"cat-a2",
+q:"Qual é um benefício dos Critérios de Aceite para a equipe de testes?",
+opts:[
+"Reduzem o número de requisitos a testar",
+"Eliminam a necessidade de testes automatizados",
+"Auxiliam no planejamento e criação dos casos de teste",
+"Definem quem será responsável pelos testes"
+],c:2,
+exp:"Critérios de aceite auxiliam no planejamento de testes, ajudam a equipe a entender o objetivo do requisito e dão parâmetros para verificar conformidade."},
+
+// ===== AULA 3 — CONCEPÇÃO =====
+{cat:"Aula 3 — Concepção",catClass:"cat-a3",
+q:"Como a fase de Concepção é caracterizada em relação à profundidade do levantamento?",
+opts:[
+"Levantamento profundo e técnico de todos os requisitos",
+"Levantamento rápido e genérico, em extensão e NÃO em profundidade",
+"Levantamento detalhado de requisitos funcionais apenas",
+"Definição completa de todos os critérios de aceite"
+],c:1,
+exp:"Concepção = visão geral do problema. Extensão (o que o sistema faz como um todo), sem aprofundar detalhes técnicos de COMO vai fazer."},
+
+{cat:"Aula 3 — Concepção",catClass:"cat-a3",
+q:"Qual é o objetivo principal da fase de Concepção no levantamento de requisitos?",
+opts:[
+"Especificar tecnicamente todos os requisitos do sistema",
+"Identificar problema, necessidades do negócio, stakeholders, viabilidade e escopo",
+"Escolher as ferramentas e tecnologias do projeto",
+"Criar o protótipo da interface do sistema"
+],c:1,
+exp:"A Concepção busca: entender o problema, identificar necessidades do negócio, definir stakeholders, analisar viabilidade, identificar fontes de req. e definir escopo."},
+
+{cat:"Aula 3 — Concepção",catClass:"cat-a3",
+q:"Quais são os 5 tipos de análise de viabilidade estudados?",
+opts:[
+"Social, Ambiental, Cultural, Política e Econômica",
+"Funcional, Não Funcional, de Usabilidade, Técnica e Legal",
+"Econômica, Operacional, de Cronograma, Técnica e Legal",
+"Tática, Estratégica, Operacional, Técnica e Financeira"
+],c:2,
+exp:"E-O-C-T-L: Econômica (recursos), Operacional (adequação à org.), Cronograma (prazo), Técnica (tecnologia disponível) e Legal (leis/contratos)."},
+
+{cat:"Aula 3 — Concepção",catClass:"cat-a3",
+q:"A viabilidade OPERACIONAL verifica:",
+opts:[
+"Se os recursos financeiros são suficientes para o projeto",
+"Se a solução do sistema pode ser colocada em prática tecnicamente",
+"Se a proposta do sistema se adequa à organização e seus usuários",
+"Se o cronograma proposto é realizável"
+],c:2,
+exp:"Viabilidade Operacional = verifica se o sistema se adequa à organização, incluindo interoperabilidade com outros sistemas e possível resistência dos usuários."},
+
+{cat:"Aula 3 — Concepção",catClass:"cat-a3",
+q:"A viabilidade TÉCNICA verifica:",
+opts:[
+"O retorno sobre investimento do projeto",
+"Se a solução pode ser desenvolvida com a tecnologia disponível e o conhecimento da equipe",
+"Se o prazo proposto é realizável",
+"Se o sistema atende às leis e regulamentações"
+],c:1,
+exp:"Viabilidade Técnica = verifica se a solução pode ser realmente desenvolvida: tecnologias disponíveis, conhecimento técnico da equipe, restrições existentes."},
+
+{cat:"Aula 3 — Concepção",catClass:"cat-a3",
+q:"O que define o 'Limite de Contexto' na Engenharia de Requisitos?",
+opts:[
+"O orçamento máximo aprovado para o projeto",
+"Os aspectos do ambiente externo que devem ser considerados na ER",
+"O número máximo de requisitos aceitos no projeto",
+"A data limite para entrega do sistema"
+],c:1,
+exp:"Limite de contexto = define o que do ambiente externo é relevante para a ER e o que pode ser ignorado. Facilita a determinação do limite de sistema."},
+
+{cat:"Aula 3 — Concepção",catClass:"cat-a3",
+q:"O que acontece quando um Stakeholder NÃO é identificado no processo de levantamento?",
+opts:[
+"O projeto fica mais rápido por ter menos pessoas envolvidas",
+"Podem ser perdidos requisitos importantes e a solução precisará ser ajustada depois",
+"O analista assume automaticamente os requisitos desse stakeholder",
+"O sistema fica mais simples e fácil de desenvolver"
+],c:1,
+exp:"Stakeholder não identificado = requisitos perdidos. A solução pode ter que ser ajustada posteriormente, gerando retrabalho e custos extras."},
+
+{cat:"Aula 3 — Concepção",catClass:"cat-a3",
+q:"Como a gestão de escopo funciona em projetos ÁGEIS?",
+opts:[
+"O escopo é fixo e não pode ser alterado após o kick-off",
+"O escopo pode ser alterado em cada iteração, priorizando o mais importante para o cliente",
+"Alterações de escopo são proibidas para garantir entrega no prazo",
+"O escopo é definido apenas no final do projeto"
+],c:1,
+exp:"Em ágil, o escopo pode mudar a cada iteração — sempre alinhado com o stakeholder e priorizando o que tem mais valor para o cliente naquele momento."},
+
+{cat:"Aula 3 — Concepção",catClass:"cat-a3",
+q:"Quais são as consequências de uma mudança de escopo não gerenciada?",
+opts:[
+"Aumento da produtividade e satisfação da equipe",
+"Impacto em orçamento, cronograma, equipe e qualidade da entrega",
+"Melhoria nos requisitos já especificados",
+"Redução do tempo de desenvolvimento"
+],c:1,
+exp:"Mudanças de escopo impactam: orçamento, recursos, cronograma, equipe e qualidade. Também causam retrabalho em requisitos já especificados."},
+
+{cat:"Aula 3 — Concepção",catClass:"cat-a3",
+q:"Por que incorporar stakeholders ao processo de levantamento os torna mais colaborativos?",
+opts:[
+"Porque eles recebem pagamento extra por participar",
+"Porque sentem que fazem parte da construção da solução",
+"Porque são legalmente obrigados a colaborar",
+"Porque o analista compartilha a responsabilidade com eles"
+],c:1,
+exp:"Quando incorporados, os stakeholders sentem que fazem parte da construção da solução, ficando mais propensos a colaborar com informações e necessidades."},
+
+{cat:"Aula 3 — Concepção",catClass:"cat-a3",
+q:"A viabilidade ECONÔMICA verifica:",
+opts:[
+"Se o sistema atende às leis vigentes",
+"Se o prazo do projeto é realista",
+"Se os recursos disponíveis são suficientes e o custo-benefício é positivo",
+"Se os usuários aceitarão usar o novo sistema"
+],c:2,
+exp:"Viabilidade Econômica = mão de obra, infraestrutura, softwares, custos fixos e variáveis. Verifica se há dinheiro suficiente e se o investimento vale a pena."},
+
+{cat:"Aula 3 — Concepção",catClass:"cat-a3",
+q:"Qual é a primeira etapa no ciclo de desenvolvimento de software segundo o conteúdo estudado?",
+opts:["Projeto de Interface","Levantamento de Requisitos","Codificação","Testes"],c:1,
+exp:"O Levantamento de Requisitos é a primeira etapa — é onde se definem as funcionalidades e o escopo do que será desenvolvido."},
+
+{cat:"Aula 3 — Concepção",catClass:"cat-a3",
+q:"O correto entendimento do problema/necessidade na Concepção ajuda a:",
+opts:[
+"Definir a linguagem de programação do projeto",
+"Identificar os requisitos mínimos desejáveis e oportunidades de melhoria",
+"Criar o cronograma detalhado do projeto",
+"Selecionar a metodologia ágil mais adequada"
+],c:1,
+exp:"O correto entendimento do problema identifica os requisitos mínimos necessários e revela oportunidades de melhoria que agregarão valor ao produto."},
+
+// ===== AULA 4 — ELICITAÇÃO =====
+{cat:"Aula 4 — Elicitação",catClass:"cat-a4",
+q:"O que é Elicitação de Requisitos?",
+opts:[
+"Processo de documentação técnica dos requisitos já aprovados",
+"Processo colaborativo e analítico de identificação das necessidades dos stakeholders",
+"Fase de testes que valida os requisitos implementados",
+"Método de priorização de backlog em projetos ágeis"
+],c:1,
+exp:"Elicitação = processo colaborativo de descoberta, coleta e extração de requisitos. Identifica e define de forma detalhada as necessidades do cliente e usuários."},
+
+{cat:"Aula 4 — Elicitação",catClass:"cat-a4",
+q:"Qual é a ordem correta das 4 etapas da Elicitação?",
+opts:[
+"Execução → Preparação → Documentação → Confirmação",
+"Preparação → Execução → Documentação → Confirmação",
+"Documentação → Preparação → Execução → Confirmação",
+"Confirmação → Execução → Preparação → Documentação"
+],c:1,
+exp:"A ordem lógica é: Preparação (organizar) → Execução (levantar) → Documentação (registrar) → Confirmação (validar com stakeholder)."},
+
+{cat:"Aula 4 — Elicitação",catClass:"cat-a4",
+q:"Quais são as 3 fontes de requisitos na Elicitação?",
+opts:[
+"Documentos, Sistemas e Especificações",
+"Stakeholders, Documentos e Sistemas",
+"Clientes, Desenvolvedores e Gestores",
+"Entrevistas, Questionários e Observação"
+],c:1,
+exp:"As 3 fontes são: Stakeholders (pessoas/orgs. que influenciam requisitos), Documentos (padrões, ops, domínio) e Sistemas (legados, predecessores ou concorrentes)."},
+
+{cat:"Aula 4 — Elicitação",catClass:"cat-a4",
+q:"O que deve ser feito na etapa de PREPARAÇÃO da Elicitação?",
+opts:[
+"Aplicar as técnicas de levantamento junto ao stakeholder",
+"Definir objetivos, público, técnicas, materiais, agenda e riscos da elicitação",
+"Registrar atas e decisões tomadas nas reuniões",
+"Confirmar com o stakeholder se o entendimento está correto"
+],c:1,
+exp:"Preparação = organizar tudo antes: objetivos, participantes, técnicas a usar, materiais necessários, estimativas de tempo e identificação de riscos."},
+
+{cat:"Aula 4 — Elicitação",catClass:"cat-a4",
+q:"Por que a etapa de CONFIRMAÇÃO é crítica na Elicitação?",
+opts:[
+"Porque define o orçamento final do projeto",
+"Porque sem ela, erros de interpretação se propagam por toda a ER",
+"Porque é quando os desenvolvedores recebem os requisitos",
+"Porque confirma o cronograma de entregas"
+],c:1,
+exp:"Sem confirmação, uma informação mal entendida gera documentação incorreta, que contamina análise, especificação, modelagem e implementação. Erro caro e tardio."},
+
+{cat:"Aula 4 — Elicitação",catClass:"cat-a4",
+q:"Brainstorming, Workshops e JAD são técnicas de qual categoria?",
+opts:[
+"Pesquisa Tradicional",
+"Centrada em Documentos",
+"Criatividade/Colaboração",
+"Observação"
+],c:2,
+exp:"Técnicas de Criatividade/Colaboração buscam desenvolver requisitos inovadores, expressar opiniões e gerar discussões em grupo (Brainstorming, Workshops, JAD)."},
+
+{cat:"Aula 4 — Elicitação",catClass:"cat-a4",
+q:"Quando as técnicas de OBSERVAÇÃO são mais úteis na elicitação?",
+opts:[
+"Quando há muitos stakeholders disponíveis para entrevistas",
+"Quando o especialista de negócio não pode investir tempo ou não consegue expressar seu conhecimento",
+"Quando os requisitos já foram documentados anteriormente",
+"Quando o projeto usa metodologia ágil"
+],c:1,
+exp:"Observação é útil quando especialistas têm pouco tempo disponível ou têm dificuldade de expressar verbalmente o que sabem. O analista observa o processo em ação."},
+
+{cat:"Aula 4 — Elicitação",catClass:"cat-a4",
+q:"Entrevistas e Questionários pertencem a qual categoria de técnica de elicitação?",
+opts:[
+"Criatividade/Colaboração",
+"Centrada em Documentos",
+"Pesquisa Tradicional",
+"Observação"
+],c:2,
+exp:"Pesquisa Tradicional inclui Entrevistas e Questionários. Buscam declarações precisas dos stakeholders sobre seus requisitos, guiadas pelo analista."},
+
+{cat:"Aula 4 — Elicitação",catClass:"cat-a4",
+q:"O que deve ser documentado após uma sessão de elicitação?",
+opts:[
+"Apenas as decisões finais aprovadas pelo cliente",
+"Pontos discutidos, decisões, questões em aberto, ações, responsáveis e próximo encontro",
+"Somente os requisitos funcionais identificados",
+"Exclusivamente o orçamento e prazo acordados"
+],c:1,
+exp:"Documentar: pontos centrais discutidos, decisões tomadas, questões não resolvidas, ações acordadas + prazos, responsáveis e data do próximo encontro."},
+
+{cat:"Aula 4 — Elicitação",catClass:"cat-a4",
+q:"Por que os RNF são frequentemente omitidos na Elicitação?",
+opts:[
+"Porque são menos importantes que os funcionais",
+"Porque a omissão deles é intencional para simplificar o projeto",
+"Porque são implícitos — o cliente assume que são óbvios e não os menciona",
+"Porque só devem ser levantados na fase de testes"
+],c:2,
+exp:"RNF são frequentemente omitidos porque parecem óbvios (o cliente não menciona 'precisa ser rápido'). Mas a omissão se propaga por todo o desenvolvimento."},
+
+{cat:"Aula 4 — Elicitação",catClass:"cat-a4",
+q:"Cenários e Prototipação se enquadram em qual categoria de técnicas de elicitação?",
+opts:[
+"Pesquisa Tradicional",
+"Criatividade/Colaboração",
+"Centrada em Documentos",
+"Outras Técnicas"
+],c:3,
+exp:"Cenários e Prototipação pertencem à categoria 'Outras Técnicas'. Prototipação é especialmente útil quando o usuário precisa 'ver' para entender o que quer."},
+
+{cat:"Aula 4 — Elicitação",catClass:"cat-a4",
+q:"O que pode acontecer se durante a execução da elicitação o stakeholder levantar necessidades fora do escopo?",
+opts:[
+"O analista deve incluir todas automaticamente",
+"Deve-se evitar desvios do escopo previamente alinhado",
+"O projeto deve ser reiniciado com o novo escopo",
+"O cliente deve ser cobrado adicionalmente por cada novo requisito"
+],c:1,
+exp:"Na execução, o stakeholder pode levantar necessidades fora do escopo. O analista deve evitar esses desvios, mantendo o foco no escopo já alinhado."},
+
+{cat:"Aula 4 — Elicitação",catClass:"cat-a4",
+q:"Quais fatores influenciam na escolha da técnica de elicitação?",
+opts:[
+"Apenas o orçamento disponível e o prazo do projeto",
+"Nível de detalhe desejado, comunicação dos stakeholders, complexidade, tipo de info, tempo/orçamento e experiência do analista",
+"Somente a metodologia de desenvolvimento adotada (ágil ou waterfall)",
+"Apenas a quantidade de stakeholders envolvidos"
+],c:1,
+exp:"A escolha da técnica depende de: nível de detalhe, comunicação dos stakeholders, complexidade do sistema, tipo de informação, tempo/orçamento disponíveis e experiência do analista."},
+
+{cat:"Aula 4 — Elicitação",catClass:"cat-a4",
+q:"Técnicas Centradas em Documentos são indicadas para:",
+opts:[
+"Quando se quer desenvolver requisitos completamente novos e inovadores",
+"Reutilizar soluções e experiências de documentos existentes, combinadas com outras técnicas",
+"Quando nenhum stakeholder está disponível para entrevistas",
+"Quando o projeto não tem nenhuma documentação anterior"
+],c:1,
+exp:"Técnicas centradas em documentos reutilizam experiências existentes. Devem ser combinadas com outras técnicas para validar e identificar novos requisitos."},
+
+{cat:"Aula 4 — Elicitação",catClass:"cat-a4",
+q:"Qual é a diferença entre Concepção e Elicitação no processo de levantamento?",
+opts:[
+"Concepção é para sistemas grandes; Elicitação para sistemas pequenos",
+"Concepção é visão geral (extensão); Elicitação é aprofundamento (profundidade) junto aos stakeholders",
+"Concepção é feita pelos desenvolvedores; Elicitação pelos analistas",
+"Concepção usa técnicas ágeis; Elicitação usa técnicas tradicionais"
+],c:1,
+exp:"Concepção = panorama geral, extensão sem profundidade. Elicitação = aprofundamento detalhado das necessidades, com participação direta dos stakeholders e uso de técnicas."},
+
+// ===== QUESTÕES MISTAS / AVANÇADAS =====
+{cat:"Aula 2 — Tipos de Requisitos",catClass:"cat-a2",
+q:"Um banco decide que o sistema deve criptografar dados sensíveis dos clientes. Qual categoria de RNF é essa?",
+opts:[
+"RNF de Produto — usabilidade",
+"RNF Organizacional — operacional",
+"RNF Externo — ético/legal (LGPD)",
+"RNF de Produto — eficiência"
+],c:2,
+exp:"Criptografia de dados sensíveis relaciona-se à LGPD e ética — portanto RNF Externo. Requisitos originados de leis e regulamentos são RNF Externos."},
+
+{cat:"Aula 2 — Tipos de Requisitos",catClass:"cat-a2",
+q:"'O sistema deve processar 25 requisições por minuto.' Qual subcategoria de RNF é essa?",
+opts:["Confiabilidade","Eficiência","Usabilidade","Segurança"],c:1,
+exp:"Capacidade de processamento (requisições por minuto) é um requisito de Eficiência — subcategoria de RNF de Produto."},
+
+{cat:"Aula 1 — Introdução",catClass:"cat-a1",
+q:"Qual das opções melhor descreve a relação entre Analista de Requisitos (BA), Product Owner (PO) e Product Manager (PM)?",
+opts:[
+"São funções idênticas com nomes diferentes",
+"BA foca em especificações; PO em especificações e prioridades; PM em visão estratégica e produto",
+"PM é subordinado ao BA, que é subordinado ao PO",
+"Todas as funções fazem exatamente o mesmo trabalho em contextos diferentes"
+],c:1,
+exp:"O diagrama das aulas mostra: BA cobre especificações, PO cobre especificações e prioridades, PM cobre prioridades, visão e estratégia — com sobreposições entre eles."},
+
+{cat:"Aula 3 — Concepção",catClass:"cat-a3",
+q:"A viabilidade LEGAL verifica:",
+opts:[
+"Se o cronograma é realista",
+"Se a solução se adequa em relação a contratos, legislações e normas",
+"Se a equipe tem conhecimento técnico",
+"Se o orçamento é suficiente"
+],c:1,
+exp:"Viabilidade Legal = verificar se a solução proposta está em conformidade com contratos existentes, legislações e normas regulatórias."},
+
+{cat:"Aula 2 — Tipos de Requisitos",catClass:"cat-a2",
+q:"Qual atributo garante que um requisito pode ser alterado sem causar grande impacto nos demais?",
+opts:["Rastreável","Verificável","Modificável","Consistente"],c:2,
+exp:"Modificável = o requisito deve ser estruturado de forma que permita mudanças sem causar grande impacto nos outros requisitos do projeto."},
+
+{cat:"Aula 4 — Elicitação",catClass:"cat-a4",
+q:"Por que é importante que a Elicitação use mais de uma técnica?",
+opts:[
+"Para gastar mais tempo e parecer mais profissional",
+"Porque cada técnica oferece uma exploração diferente do requisito e projetos têm características individuais",
+"Para envolver mais stakeholders e aumentar o orçamento",
+"Porque nenhuma técnica sozinha é capaz de levantar qualquer requisito"
+],c:1,
+exp:"Cada técnica oferece uma perspectiva diferente. Como cada projeto tem características individuais, combinar técnicas garante uma elicitação mais completa e adequada."},
+
+{cat:"Aula 2 — Tipos de Requisitos",catClass:"cat-a2",
+q:"Um sistema de ponto eletrônico deve enviar e-mail ao responsável técnico sempre que ocorrer uma falha. Que tipo de RNF é esse?",
+opts:[
+"RNF de Produto — eficiência",
+"RNF Organizacional — operacional",
+"RNF Externo — legal",
+"RNF de Produto — usabilidade"
+],c:1,
+exp:"Esse é um RNF Organizacional Operacional — originado das políticas e procedimentos da organização sobre como lidar com falhas operacionais."},
+
+{cat:"Aula 3 — Concepção",catClass:"cat-a3",
+q:"O que é o 'Limite de Sistema' na Engenharia de Requisitos?",
+opts:[
+"O número máximo de usuários suportados pelo sistema",
+"A definição de quais aspectos da realidade o sistema vai atender (dentro/fora do escopo)",
+"O prazo máximo para conclusão do sistema",
+"A versão mais antiga do sistema que será mantida"
+],c:1,
+exp:"Limite de sistema = define quais aspectos da realidade o sistema vai atender. Quando definido, fica fácil determinar o escopo e o que NÃO faz parte do sistema."},
+
+{cat:"Aula 2 — Tipos de Requisitos",catClass:"cat-a2",
+q:"'Para compras acima de R$ 100, o frete é grátis.' Esse é:",
+opts:[
+"Requisito Funcional de sistema",
+"Requisito Não Funcional Externo",
+"Regra de Negócio (RN03/RN04)",
+"Critério de aceite de um requisito"
+],c:2,
+exp:"Política de frete grátis é uma Regra de Negócio — reflete uma política comercial específica do domínio da aplicação."},
+
+{cat:"Aula 1 — Introdução",catClass:"cat-a1",
+q:"Para qual área a ER contribui com 'planejamento e acompanhamento de escopo, prazos e orçamento'?",
+opts:["Testes","Desenvolvimento","Implantação","Gerência de Projetos"],c:3,
+exp:"A ER produz insumos para Gerência de Projetos com planejamento e acompanhamento de escopo, prazos e orçamento."},
+
+{cat:"Aula 4 — Elicitação",catClass:"cat-a4",
+q:"Qual questionamento é indicado para elicitar Requisitos Não Funcionais via questionário?",
+opts:[
+"'Quais funcionalidades o sistema deve ter?'",
+"'Existem padrões a seguir? Como responder a erros? Quais dados devem ser seguros?'",
+"'Quantos usuários vão usar o sistema diariamente?'",
+"'Qual é o prazo para entrega do sistema?'"
+],c:1,
+exp:"Para RNF, o professor indica questionamentos como: 'Existem padrões? Como o sistema deve responder a erros? Quais dados são sensíveis/seguros?'"},
+
+{cat:"Aula 2 — Tipos de Requisitos",catClass:"cat-a2",
+q:"Uma empresa decide usar orientação a objetos como padrão de desenvolvimento. Que tipo de requisito é esse?",
+opts:[
+"Requisito Funcional de sistema",
+"RNF de Produto — segurança",
+"RNF Organizacional — implementação",
+"Regra de Negócio"
+],c:2,
+exp:"Padrão de desenvolvimento (orientação a objetos, Java, etc.) é uma política interna da organização — RNF Organizacional de implementação."},
+
+{cat:"Aula 3 — Concepção",catClass:"cat-a3",
+q:"A existência de Requisitos de Negócio documentados facilita:",
+opts:[
+"A escolha da linguagem de programação",
+"O gerenciamento do escopo e tomada de decisão sobre alterações",
+"A criação automática de casos de teste",
+"A seleção dos desenvolvedores do projeto"
+],c:1,
+exp:"Requisitos de Negócio documentados facilitam o gerenciamento do escopo pois auxiliam na tomada de decisão sobre alterações solicitadas durante o projeto."},
+
+{cat:"Aula 4 — Elicitação",catClass:"cat-a4",
+q:"O que são as 'Técnicas Centradas em Documentos' e qual é sua limitação?",
+opts:[
+"Técnicas que usam apenas entrevistas escritas; limitação é que são lentas",
+"Técnicas que reutilizam documentos existentes; devem ser combinadas com outras para validar e identificar novos requisitos",
+"Técnicas exclusivas para sistemas legados; não funcionam em projetos novos",
+"Técnicas de documentação pós-elicitação; limitação é que não identificam requisitos novos"
+],c:1,
+exp:"Centradas em documentos = reutilizam soluções de documentos existentes. Limitação: devem ser combinadas com outras técnicas para validar requisitos e identificar novos."},
+
+];
+
+// ===================== STATE =====================
+let pool = [];
+let used = [];
+let round = { questions: [], qi: 0, answers: [], correct: 0 };
+let globalStats = { rodadas: 0, totalQ: 0, totalCorrect: 0 };
+
+function shuffle(arr) {
+  for (let i = arr.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [arr[i], arr[j]] = [arr[j], arr[i]];
+  }
+  return arr;
+}
+
+function pickQuestions() {
+  // Reset pool if exhausted
+  if (pool.length < 10) {
+    used = [];
+    pool = shuffle([...Array(QUESTIONS.length).keys()]);
+  }
+  const chosen = pool.splice(0, 10);
+  used.push(...chosen);
+  return chosen.map(i => QUESTIONS[i]);
+}
+
+function goHome() {
+  document.getElementById('screen-result').style.display = 'none';
+  document.getElementById('screen-quiz').style.display = 'none';
+  const start = document.getElementById('screen-start');
+  start.style.display = 'flex';
+  updateHomeStats();
+}
+
+function updateHomeStats() {
+  if (globalStats.rodadas > 0) {
+    document.getElementById('global-stats-home').style.display = 'flex';
+    document.getElementById('gs-rodadas').textContent = globalStats.rodadas;
+    const pct = Math.round((globalStats.totalCorrect / globalStats.totalQ) * 100);
+    document.getElementById('gs-acertos').textContent = pct + '%';
+    document.getElementById('gs-total').textContent = globalStats.totalQ;
+  }
+}
+
+function startQuiz() {
+  if (pool.length === 0) pool = shuffle([...Array(QUESTIONS.length).keys()]);
+  const qs = pickQuestions();
+  round = { questions: qs, qi: 0, answers: [], correct: 0 };
+  globalStats.rodadas++;
+
+  document.getElementById('screen-start').style.display = 'none';
+  document.getElementById('screen-result').style.display = 'none';
+  const quiz = document.getElementById('screen-quiz');
+  quiz.style.display = 'flex';
+
+  document.getElementById('round-label').textContent = 'Rodada ' + globalStats.rodadas;
+  renderQuestion();
+  quiz.scrollTop = 0;
+}
+
+function renderQuestion() {
+  const q = round.questions[round.qi];
+  const total = round.questions.length;
+
+  // Header
+  const pct = (round.qi / total) * 100;
+  document.getElementById('progress-fill').style.width = pct + '%';
+  document.getElementById('q-counter').textContent = `Pergunta ${round.qi + 1} de ${total}`;
+  document.getElementById('live-score').textContent = round.correct + ' / ' + round.qi;
+
+  // Body
+  document.getElementById('cat-tag').textContent = q.cat;
+  document.getElementById('cat-tag').className = 'category-tag ' + q.catClass;
+  document.getElementById('question-text').textContent = q.q;
+
+  const optsEl = document.getElementById('options-container');
+  optsEl.innerHTML = '';
+
+  // Shuffle option indices
+  const indices = shuffle([0, 1, 2, 3]);
+  const shuffledOpts = indices.map(i => q.opts[i]);
+  const newCorrect = indices.indexOf(q.c);
+
+  shuffledOpts.forEach((opt, i) => {
+    const btn = document.createElement('button');
+    btn.className = 'opt-btn';
+    btn.innerHTML = `<span class="opt-letter">${String.fromCharCode(65 + i)}</span><span>${opt}</span>`;
+    btn.onclick = () => handleAnswer(i, newCorrect, q.exp);
+    optsEl.appendChild(btn);
+  });
+
+  const fb = document.getElementById('feedback-box');
+  fb.className = 'feedback-box';
+  fb.style.display = 'none';
+  document.getElementById('btn-next').className = 'btn-next';
+
+  // Scroll to top
+  document.getElementById('screen-quiz').scrollTop = 0;
+  window.scrollTo(0, 0);
+}
+
+function handleAnswer(chosen, correct, exp) {
+  const btns = document.querySelectorAll('.opt-btn');
+  btns.forEach((btn, i) => {
+    btn.disabled = true;
+    if (i === correct) btn.classList.add('correct');
+    else if (i === chosen && chosen !== correct) btn.classList.add('wrong');
+  });
+
+  const isCorrect = chosen === correct;
+  if (isCorrect) round.correct++;
+  round.answers.push({ qi: round.qi, correct: isCorrect, chosen, correctIdx: correct });
+
+  const fb = document.getElementById('feedback-box');
+  fb.style.display = 'block';
+  fb.className = 'feedback-box show ' + (isCorrect ? 'ok' : 'nok');
+  document.getElementById('feedback-title').textContent = isCorrect ? '✓ Correto!' : '✗ Incorreto';
+  document.getElementById('feedback-exp').textContent = exp;
+
+  document.getElementById('live-score').textContent = round.correct + ' / ' + (round.qi + 1);
+
+  const nextBtn = document.getElementById('btn-next');
+  nextBtn.className = 'btn-next show';
+  nextBtn.textContent = round.qi < round.questions.length - 1 ? 'Próxima →' : 'Ver Resultado';
+}
+
+function nextQuestion() {
+  round.qi++;
+  if (round.qi >= round.questions.length) {
+    showResult();
+  } else {
+    renderQuestion();
+  }
+}
+
+function showResult() {
+  globalStats.totalQ += 10;
+  globalStats.totalCorrect += round.correct;
+
+  document.getElementById('screen-quiz').style.display = 'none';
+  const result = document.getElementById('screen-result');
+  result.style.display = 'flex';
+
+  const score = round.correct;
+  const pct = Math.round((score / 10) * 100);
+
+  // Ring animation
+  const circumference = 2 * Math.PI * 52;
+  const offset = circumference - (pct / 100) * circumference;
+  setTimeout(() => {
+    const circle = document.getElementById('score-circle');
+    const color = pct >= 80 ? 'var(--green)' : pct >= 60 ? 'var(--yellow)' : 'var(--red)';
+    circle.style.stroke = color;
+    circle.style.strokeDashoffset = offset;
+  }, 100);
+
+  document.getElementById('result-score-num').textContent = score;
+  document.getElementById('rb-correct').textContent = score;
+  document.getElementById('rb-wrong').textContent = 10 - score;
+  document.getElementById('rb-pct').textContent = pct + '%';
+
+  let msg, sub;
+  if (pct >= 90) { msg = '🏆 Excelente!'; sub = 'Você domina o conteúdo. Está pronto para a prova!'; }
+  else if (pct >= 80) { msg = '🎉 Muito bom!'; sub = 'Ótimo desempenho. Revise os erros e você garante uma nota alta.'; }
+  else if (pct >= 70) { msg = '👍 Bom!'; sub = 'Você está no caminho certo. Refaça as questões erradas.'; }
+  else if (pct >= 60) { msg = '📚 Regular'; sub = 'Revise os tópicos com erro e faça mais uma rodada.'; }
+  else { msg = '💪 Continue estudando!'; sub = 'Use os resumos e refaça o quiz. Você vai melhorar!'; }
+
+  document.getElementById('result-msg').textContent = msg;
+  document.getElementById('result-sub').textContent = sub;
+
+  // Global stats
+  document.getElementById('gs-row-result').style.display = 'flex';
+  document.getElementById('gsr-rodadas').textContent = globalStats.rodadas;
+  const gPct = Math.round((globalStats.totalCorrect / globalStats.totalQ) * 100);
+  document.getElementById('gsr-acertos').textContent = gPct + '%';
+  document.getElementById('gsr-total').textContent = globalStats.totalQ;
+
+  // Review
+  const reviewEl = document.getElementById('review-list');
+  reviewEl.innerHTML = '';
+  round.answers.forEach((ans, i) => {
+    const q = round.questions[i];
+    const div = document.createElement('div');
+    div.className = 'review-item';
+    const statusClass = ans.correct ? 'ok' : 'nok';
+    const statusText = ans.correct ? '✓ Acertou' : '✗ Errou';
+    div.innerHTML = `
+      <div class="ri-tag ${statusClass}">${statusText}</div>
+      <div class="ri-q">${q.q}</div>
+      <div class="ri-ans">Resposta correta: <span>${q.opts[q.c]}</span></div>
+    `;
+    reviewEl.appendChild(div);
+  });
+
+  result.scrollTop = 0;
+  window.scrollTo(0, 0);
+}
+
+// Init pool
+pool = shuffle([...Array(QUESTIONS.length).keys()]);
+</script>
+</body>
+</html>
